@@ -1,5 +1,13 @@
 # EpiVision
 
+#How to install
+1. If you don't already have python installed, install python.
+2. Copy the repository.
+3. in the folder which you copied the repo to, do 'pip install deepface'.
+4. Try python app.py in your terminal, if it works great (it probably doesn't). The terminal should now prompt you to download tf-keras. do that. write 'pip install tf-keras' in the terminal.
+5. Try python app.py again. Now it should hopefully work.
+6. If it doesnt work try 'pip install -r requirements.txt'.
+
 EpiVision is a project aimed at enhancing [Epi](https://github.com/birgerjohansson/Epi), the educational robot, by equipping it with facial recognition capabilities. Our goal is to enable Epi to recognize individuals as they enter a room and greet them personally by name, thereby creating a more engaging and interactive educational experience.
 
 ## Project Overview
