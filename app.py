@@ -9,7 +9,7 @@ import cv2
 def main():
    
     #Extract and show face from one image
-    image_path = 'Epi-bilder/color2895.jpg'
+    image_path = 'Epi-bilder/color2955.jpg'
     faces = extract_faces(image_path)
     show_faces(faces)
 

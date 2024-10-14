@@ -7,6 +7,15 @@ import os
 
 
 
+#Print X and Y values of where the face is
+def print_facial_coordinates(faces):
+    for i, face in enumerate(faces):
+        facial_area = face.get("facial_area", {})
+        x = facial_area.get("x", None)
+        y = facial_area.get("y", None)
+        
+        # Print the X and Y values
+        print(f"Face {i + 1}: X = {x}, Y = {y}")
 
 
 
@@ -14,6 +23,10 @@ import os
 def extract_faces(image_path):
     try:
         faces = DeepFace.extract_faces(img_path=image_path,detector_backend="retinaface") #testar retina face
+        
+        # Call the function to print X and Y coordinates
+        print_facial_coordinates(faces)
+
         return faces
    
     except Exception as e:
