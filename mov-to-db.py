@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
 Created on Tue Oct 29 23:53:38 2024
 
@@ -11,6 +9,7 @@ import cv2
 import csv
 import uuid
 from datetime import datetime
+import sys
 
 #%%
 
@@ -116,19 +115,23 @@ def process_video(video_path, name):
 
     # Add contact details to the CSV file
     add_contact_to_csv(contact_id, name)
-    
-#%%
+  
+def main():
+    # Check if command-line arguments are provided
+    if len(sys.argv) > 2:
+        # Get arguments from the command line
+        video_path = sys.argv[1]
+        name = sys.argv[2]
+    else:
+        # Prompt user for inputs if no command-line arguments
+        video_path = input("Enter the video path: ")  # Prompt for video path
+        name = input("Enter the name: ")  # Prompt for contact name
+
+    # Process the video with the given inputs
+    process_video(video_path, name)
 
 if __name__ == "__main__":
-    # Get video file path from the user
-    video_path = input("Enter the path to the video (.MOV, .mp4, .m4v): ")
-    if not os.path.exists(video_path):
-        print("Video file does not exist.")
-        exit(1)
+    main()
 
-    # Get the name of the person in the video
-    name = input("Enter the name of the person in the video: ")
-
-    # Process the video to extract frames and update the database
-    process_video(video_path, name)
-    print("Database updated successfully!")
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
