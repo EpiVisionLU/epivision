@@ -30,11 +30,15 @@ EpiVision focuses on developing a real-time face recognition system that process
 
 ## Technologies Used
 
+***Preliminary information***
+
 - Programming Language: Python
-- Computer Vision Libraries: TBD
-- Deep Learning Frameworks: TBD
-- Face Recognition Models: TBD
-- Text-to-Speech: TBD
+- Face Recognition Framework: [DeepFace](https://github.com/serengil/deepface)
+- Face Recognition Models:
+  - Detection: [RetinaFace](https://github.com/serengil/retinaface) or [mtcnn](https://github.com/ipazc/mtcnn)
+  - Identification: [facenet](https://github.com/davidsandberg/facenet)
+
+- Text-to-Speech:[ Ikaros EpiSpeech](https://github.com/ikaros-project/ikaros)
 
 ## Team
 
@@ -42,3 +46,9 @@ EpiVision focuses on developing a real-time face recognition system that process
 - Alexander Vatamidis Norrstam (Cognitive Science)
 - Marcus Lindelöf (Cognitive Science)
 -  Simon Högborg Rosengren (Cognitive Science)
+
+# How-to
+
+## mov-to-db.py
+
+Either run the mov-to-db.py file from the terminal and use <path to video> <Name> as args (`python mov-to-db.py /Users/epi/Downloads/movie.mov John`), or run the program without args and add video path and name as inputs when prompted.
