@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import cv2
 import pandas as pd
 import os
+import requests
+import time
 
 
 
@@ -18,6 +20,21 @@ def print_facial_coordinates(faces):
         print(f"Face {i + 1}: X = {x}, Y = {y}")
 
 
+#Get X coordinate
+def get_face_x(faces):
+    x_coordinates = []
+    for face in faces:
+        facial_area = face.get("facial_area", {})
+        x = facial_area.get("x", None)
+        
+        # Append the X value to the list
+        if x is not None:
+            x_coordinates.append(x)
+    
+    return x_coordinates
+
+
+
 
 
 def extract_faces(image_path):
@@ -25,9 +42,13 @@ def extract_faces(image_path):
         faces = DeepFace.extract_faces(img_path=image_path,detector_backend="retinaface") #testar retina face
         
         # Call the function to print X and Y coordinates
-        print_facial_coordinates(faces)
+        #print_facial_coordinates(faces)
+        print(faces)
 
-        return faces
+        x_values = get_face_x(faces)
+        
+        return x_values
+
    
     except Exception as e:
         print("Error occured during face extraction")
@@ -123,8 +144,137 @@ def analyze_faces():
     pd.DataFrame(race, index=[0]).T.plot(kind="bar")
     plt.show()
 
-
-
-
 def streaming():
-    DeepFace.stream(db_path='face-db/', source=0)
+    DeepFace.stream(db_path='face-db/', source='http://righteye.local:8080/stream/video.mjpeg') 
+
+# Send HTTP GET requests to control Epi
+
+
+def control_epi():
+    urls = [
+        "http://localhost:8000/control/SR.positions/0/0/20",
+        "http://localhost:8000/control/SR.positions/1/0/10",
+        "http://localhost:8000/control/SR.positions/4/0/15",
+        "http://localhost:8000/control/SR.positions/5/0/15"
+    ]
+    
+    for url in urls:
+        response = requests.get(url)
+        if response.status_code == 200:
+            print(f"Response received from {url}: {response.json()}")
+        else:
+            print(f"Failed to retrieve data from {url}. Status code: {response.status_code}")
+
+
+def control_epi2(id, position, value):
+    url = f"http://localhost:8000/control/SR.positions/{id}/{position}/{value}"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        print(f"Response received from {url}: {response.json()}")
+    else:
+        print(f"Failed to retrieve data from {url}. Status code: {response.status_code}")
+
+
+
+
+
+
+#Ska snyggas till
+def get_x_live(camera_url='http://righteye.local:8080/stream/video.mjpeg'):
+    try:
+        # Initialize video capture with the camera stream URL
+        cap = cv2.VideoCapture(camera_url)
+        x_values_list = []
+
+        # Set up the timer for a 5-second interval
+        last_capture_time = time.time()
+
+        while True:
+            # Capture each frame from the live stream
+            ret, frame = cap.read()
+            if not ret:
+                print("Failed to retrieve frame from the stream.")
+                break
+
+            # Check if 5 seconds have passed since the last capture
+            current_time = time.time()
+            if current_time - last_capture_time >= 5:
+                # Process the frame to detect faces every 5 seconds
+                faces = DeepFace.extract_faces(img_path=frame, detector_backend="retinaface")
+
+                # Extract the X coordinates using the get_face_x function
+                x_values = get_face_x(faces)
+                x_values_list.append(x_values)
+
+                # Print or log the X values for each processed frame
+                print("X coordinates of faces:", x_values)
+                #control_epi2(1,0,10)
+                print("x_values ",x_values[0])
+                control_epi2(1,0, (x_values[0]/50))
+                #control_epi2(1,0,0)
+
+            
+
+                # Update the last capture time
+                last_capture_time = current_time
+
+            # Optional: Display the frame in real-time (press 'q' to quit)
+            cv2.imshow('Live Stream', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Release the video capture and close windows when done
+        cap.release()
+        cv2.destroyAllWindows()
+
+        # Return all collected X coordinates
+        return x_values_list
+
+    except Exception as e:
+        print("An error occurred during live streaming:", e)
+        return None
+
+# Example usage:
+# x_coordinates_over_time = get_x_live()
+# print("Collected X coordinates:", x_coordinates_over_time)
+
+
+
+
+
+def get_x_live_datacamp():
+    face_classifier = cv2.CascadeClassifier(
+    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
+    )
+
+    video_capture = cv2.VideoCapture(0)
+
+
+    def detect_bounding_box(vid):
+        gray_image = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)
+        faces = face_classifier.detectMultiScale(gray_image, 1.1, 5, minSize=(40, 40))
+        for (x, y, w, h) in faces:
+            cv2.rectangle(vid, (x, y), (x + w, y + h), (0, 255, 0), 4)
+        return faces
+    
+
+    while True:
+
+        result, video_frame = video_capture.read()  # read frames from the video
+        if result is False:
+            break  # terminate the loop if the frame is not read successfully
+
+        faces = detect_bounding_box(
+            video_frame
+        )  # apply the function we created to the video frame
+
+        cv2.imshow(
+            "My Face Detection Project", video_frame
+        )  # display the processed frame in a window named "My Face Detection Project"
+
+        if cv2.waitKey(1) & 0xFF == ord("q"):
+            break
+
+    video_capture.release()
+    cv2.destroyAllWindows()
