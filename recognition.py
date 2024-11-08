@@ -7,8 +7,6 @@ import requests
 import time
 
 
-
-
 #Print X and Y values of where the face is
 def print_facial_coordinates(faces):
     for i, face in enumerate(faces):
@@ -20,7 +18,7 @@ def print_facial_coordinates(faces):
         print(f"Face {i + 1}: X = {x}, Y = {y}")
 
 
-#Get X coordinate
+#Get X coordinate from faces we send in, does not do any own face recognition.
 def get_face_x(faces):
     x_coordinates = []
     for face in faces:
@@ -33,6 +31,19 @@ def get_face_x(faces):
     
     return x_coordinates
 
+# Get Y coordinate
+def get_face_y(faces):
+    y_coordinates = []
+    for face in faces:
+        facial_area = face.get("facial_area", {})
+        y = facial_area.get("y", None)
+        
+        # Append the Y value to the list
+        if y is not None:
+            y_coordinates.append(y)
+    
+    return y_coordinates
+
 
 
 
@@ -43,11 +54,12 @@ def extract_faces(image_path):
         
         # Call the function to print X and Y coordinates
         #print_facial_coordinates(faces)
-        print(faces)
+        #print(faces)
 
-        x_values = get_face_x(faces)
-        
-        return x_values
+        #x_values = get_face_x(faces)
+        #return x_values
+
+        return faces
 
    
     except Exception as e:
@@ -180,12 +192,15 @@ def control_epi2(id, position, value):
 
 
 
-#Ska snyggas till
-def get_x_live(camera_url='http://righteye.local:8080/stream/video.mjpeg'):
+#Ska snyggas till 
+"""
+def live_movement():
+    camera_url='http://righteye.local:8080/stream/video.mjpeg'
     try:
         # Initialize video capture with the camera stream URL
         cap = cv2.VideoCapture(camera_url)
         x_values_list = []
+        y_values_list = []
 
         # Set up the timer for a 5-second interval
         last_capture_time = time.time()
@@ -206,6 +221,10 @@ def get_x_live(camera_url='http://righteye.local:8080/stream/video.mjpeg'):
                 # Extract the X coordinates using the get_face_x function
                 x_values = get_face_x(faces)
                 x_values_list.append(x_values)
+
+                #Extract the Y coordinate using get_face_y
+        
+
 
                 # Print or log the X values for each processed frame
                 print("X coordinates of faces:", x_values)
@@ -239,42 +258,75 @@ def get_x_live(camera_url='http://righteye.local:8080/stream/video.mjpeg'):
 # x_coordinates_over_time = get_x_live()
 # print("Collected X coordinates:", x_coordinates_over_time)
 
+"""
 
 
+def temp_main ():
+    camera_url='http://righteye.local:8080/stream/video.mjpeg'
+    try:
+        # Initialize video capture with the camera stream URL
+        cap = cv2.VideoCapture(camera_url)
+        x_values_list = []
+        y_values_list = []
 
+        # Set up the timer for a 5-second interval
+        last_capture_time = time.time()
 
-def get_x_live_datacamp():
-    face_classifier = cv2.CascadeClassifier(
-    cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-    )
+        #EPI KOLLAR KONSTANT, därav detta borde vara main?
+        while True: 
+            # Capture each frame from the live stream
+            ret, frame = cap.read()
+            if not ret:
+                print("Failed to retrieve frame from the stream.")
+                break
 
-    video_capture = cv2.VideoCapture(0)
+            # Check if 5 seconds have passed since the last capture
+            current_time = time.time()
+            if current_time - last_capture_time >= 5:
+                # Process the frame to detect faces every 5 seconds
+                # gammalt från faces = DeepFace.extract_faces(img_path=frame, detector_backend="retinaface")
+                faces = extract_faces(frame)
 
+                # Extract the X coordinates using the get_face_x function
+                x_values = get_face_x(faces)
+                y_values = get_face_y(faces)
 
-    def detect_bounding_box(vid):
-        gray_image = cv2.cvtColor(vid, cv2.COLOR_BGR2GRAY)
-        faces = face_classifier.detectMultiScale(gray_image, 1.1, 5, minSize=(40, 40))
-        for (x, y, w, h) in faces:
-            cv2.rectangle(vid, (x, y), (x + w, y + h), (0, 255, 0), 4)
-        return faces
+                x_values_list.append(x_values)
+                y_values_list.append(y_values)
+
+                #X values for each processed frame
+                print("x_values ",x_values[0])
+                #temporärt, senare skickar vi in Simons metod här, ex 
+                # actual_movement = coordiante_modification(x, x_values[0])
+                control_epi2(1,0, (x_values[0]/50)) #ska vara actual_movement istället för x_values[0]/50
+
+                
+                #Y values for each processed frame
+                print ("y_value", y_values[0])
+                #temporärt, senare skickar vi in Simons metod här, ex 
+                # actual_movement = coordiante_modification(y, y_values[0])
+
+                control_epi2(0,0, (y_values[0]/50))  #ska vara actual_movement istället för y_values[0]/50
+
+            
+
+                # Update the last capture time
+                last_capture_time = current_time
+
+            # Optional: Display the frame in real-time (press 'q' to quit)
+            cv2.imshow('Live Stream', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Release the video capture and close windows when done
+        cap.release()
+        cv2.destroyAllWindows()
+
+        # Return all collected X coordinates
+        #return x_values_list
+
+    except Exception as e:
+        print("An error occurred during live streaming:", e)
+        return None
     
 
-    while True:
-
-        result, video_frame = video_capture.read()  # read frames from the video
-        if result is False:
-            break  # terminate the loop if the frame is not read successfully
-
-        faces = detect_bounding_box(
-            video_frame
-        )  # apply the function we created to the video frame
-
-        cv2.imshow(
-            "My Face Detection Project", video_frame
-        )  # display the processed frame in a window named "My Face Detection Project"
-
-        if cv2.waitKey(1) & 0xFF == ord("q"):
-            break
-
-    video_capture.release()
-    cv2.destroyAllWindows()
