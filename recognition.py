@@ -6,16 +6,79 @@ import os
 import requests
 import time
 
+#%% Improved function for camera movement calculation with limits
 
-#Simons funktion
-# def coordinate_modification(coordinate, value): 
-#   Code code code...
-#   .....
-#   return actual_movement           
-# 
-# Coordinate är om det är X eller Y, value är värdet på koordinaten
-# actual_movement är värdet som vi skickar till Epi i hur mycket den ska röra sig. det som brukar vara mellan -30 och 30
+# Function to adjust camera movement based on pixel coordinates
+def coordinate_modification(x, y, current_pan, current_tilt):
+    '''
 
+    Parameters
+    ----------
+    x : x value of item to track
+    y : y value of item to track
+    current_pan : Epi's current pan position 
+    current_tilt : Epi's current tilt position 
+
+    Returns
+    -------
+    target_pan_position : Absolute horizontal degrees of tracked object
+    target_tilt_position : Absolute vertical degrees of tracked object
+
+    '''
+    
+    # Video stream dimensions
+    video_width = 640
+    video_height = 480
+    
+    # Camera sensor field of view in degrees
+    sensor_fov_width = 62.2
+    sensor_fov_height = 48.8
+    
+    # Epi movement limitations in degrees (min, max)
+    pan_limit = (-35, 40)
+    tilt_limit = (-15, 30)
+    
+    # Calculate degrees per pixel for each axis
+    horizontal_degrees_per_pixel = sensor_fov_width / video_width
+    vertical_degrees_per_pixel = sensor_fov_height / video_height
+    
+    # Calculate pixel offset from center
+    horizontal_offset = x - video_width / 2  # Positive if to the right of center
+    vertical_offset = y - video_height / 2   # Positive if below the center
+    
+    # Convert pixel offset to degree adjustment
+    pan_adjust = round(horizontal_offset * horizontal_degrees_per_pixel)
+    tilt_adjust = round(vertical_offset * vertical_degrees_per_pixel)
+    
+    # Calculate the new target positions for pan and tilt, considering the current positions
+    target_pan_position = current_pan + pan_adjust
+    target_tilt_position = current_tilt + tilt_adjust
+    
+    # Enforce pan and tilt limits
+    target_pan_position = max(pan_limit[0], min(target_pan_position, pan_limit[1]))
+    target_tilt_position = max(tilt_limit[0], min(target_tilt_position, tilt_limit[1]))
+    
+    return target_pan_position, target_tilt_position
+
+#%% Test coordinates
+'''
+# Proprioception: These are the current values for Epi's neck, saved as degrees.
+epi_pan_pos = 0   # Current pan position in degrees
+epi_tilt_pos = 0  # Current tilt position in degrees
+
+# Example target pixel coordinates from the video stream
+target_x = -23
+target_y = 9250
+
+# Calculate new pan and tilt positions
+new_pan_pos, new_tilt_pos = coordinate_modification(target_x, target_y, epi_pan_pos, epi_tilt_pos)
+
+# Output the movement commands for Epi
+print(f"New pan position: {new_pan_pos} degrees, New tilt position: {new_tilt_pos} degrees.")
+
+'''
+
+#%%
 
 #Print X and Y values of where the face is
 def print_facial_coordinates(faces):
