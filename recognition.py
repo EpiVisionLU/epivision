@@ -7,6 +7,16 @@ import requests
 import time
 
 
+#Simons funktion
+# def coordinate_modification(coordinate, value): 
+#   Code code code...
+#   .....
+#   return actual_movement           
+# 
+# Coordinate är om det är X eller Y, value är värdet på koordinaten
+# actual_movement är värdet som vi skickar till Epi i hur mycket den ska röra sig. det som brukar vara mellan -30 och 30
+
+
 #Print X and Y values of where the face is
 def print_facial_coordinates(faces):
     for i, face in enumerate(faces):
