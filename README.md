@@ -1,6 +1,6 @@
 # EpiVision
 
-#How to install
+## How to install
 1. If you don't already have python installed, install python.
 2. Copy the repository.
 3. in the folder which you copied the repo to, do 'pip install deepface'.
