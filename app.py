@@ -1,5 +1,5 @@
 from deepface import DeepFace
-from recognition import extract_faces, show_faces, verify_faces, find_faces, analyze_faces, streaming, extract_faces_from_folder, control_epi, control_epi2, get_face_x, temp_main
+from recognition import extract_faces, show_faces, verify_faces, find_faces, analyze_faces, streaming, extract_faces_from_folder, control_epi, control_epi2, get_face_x, temp_main, analyze_emotion_live
 import matplotlib.pyplot as plt
 import cv2
 import time
@@ -35,7 +35,9 @@ def main():
    
     #live_movement()
 
-    temp_main()
+    #temp_main()
+
+    analyze_emotion_live(source='webcam')
     
     # --------------------------------------------------------------------
    

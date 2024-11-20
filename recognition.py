@@ -157,17 +157,19 @@ def find_faces():
 
 
 
-
+#action specifierar vilken sak man analysar. Man kan strunta helt i denna parameter och analyseras allt.
 def analyze_faces():
-    result = DeepFace.analyze(img_path='face-db/ruben-tapptorp/ruben3.jpg')
-    #print(result)
+    result = DeepFace.analyze(img_path='face-db/ruben-tapptorp/ruben1.jpg', actions=['emotion']) 
+    print(result)
     first_face = result[0]
-    race = first_face["race"]
-    pd.DataFrame(race, index=[0]).T.plot(kind="bar")
-    plt.show()
+    #race = first_face["race"]
+    emotion = first_face["emotion"]
+    print("Emotion analysis:", emotion)
+    #pd.DataFrame(race, index=[0]).T.plot(kind="bar") #Index verkar bara förklara vad den blåa stapeln är?
+    #plt.show()
 
 def streaming():
-    DeepFace.stream(db_path='face-db/', source='http://righteye.local:8080/stream/video.mjpeg') 
+    DeepFace.stream(db_path='face-db/', source= 0)  #source='http://righteye.local:8080/stream/video.mjpeg' för epi
 
 # Send HTTP GET requests to control Epi
 
@@ -200,75 +202,6 @@ def control_epi2(id, position, value):
 
 
 
-
-
-#Ska snyggas till 
-"""
-def live_movement():
-    camera_url='http://righteye.local:8080/stream/video.mjpeg'
-    try:
-        # Initialize video capture with the camera stream URL
-        cap = cv2.VideoCapture(camera_url)
-        x_values_list = []
-        y_values_list = []
-
-        # Set up the timer for a 5-second interval
-        last_capture_time = time.time()
-
-        while True:
-            # Capture each frame from the live stream
-            ret, frame = cap.read()
-            if not ret:
-                print("Failed to retrieve frame from the stream.")
-                break
-
-            # Check if 5 seconds have passed since the last capture
-            current_time = time.time()
-            if current_time - last_capture_time >= 5:
-                # Process the frame to detect faces every 5 seconds
-                faces = DeepFace.extract_faces(img_path=frame, detector_backend="retinaface")
-
-                # Extract the X coordinates using the get_face_x function
-                x_values = get_face_x(faces)
-                x_values_list.append(x_values)
-
-                #Extract the Y coordinate using get_face_y
-        
-
-
-                # Print or log the X values for each processed frame
-                print("X coordinates of faces:", x_values)
-                #control_epi2(1,0,10)
-                print("x_values ",x_values[0])
-                control_epi2(1,0, (x_values[0]/50))
-                #control_epi2(1,0,0)
-
-            
-
-                # Update the last capture time
-                last_capture_time = current_time
-
-            # Optional: Display the frame in real-time (press 'q' to quit)
-            cv2.imshow('Live Stream', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-        # Release the video capture and close windows when done
-        cap.release()
-        cv2.destroyAllWindows()
-
-        # Return all collected X coordinates
-        return x_values_list
-
-    except Exception as e:
-        print("An error occurred during live streaming:", e)
-        return None
-
-# Example usage:
-# x_coordinates_over_time = get_x_live()
-# print("Collected X coordinates:", x_coordinates_over_time)
-
-"""
 
 
 def temp_main ():
@@ -339,4 +272,68 @@ def temp_main ():
         print("An error occurred during live streaming:", e)
         return None
     
+
+
+
+def analyze_emotion_live(source='stream'):
+    """
+    Analyzes emotions live from a video source.
+    
+    Args:
+        source (str): 'stream' for camera URL or 'webcam' for webcam feed.
+    """
+    camera_url = 'http://righteye.local:8080/stream/video.mjpeg'
+    video_source = 0 if source == 'webcam' else camera_url  # 0 for the default webcam
+    
+    try:
+        # Initialize video capture with the chosen source
+        cap = cv2.VideoCapture(video_source)
+
+        # Set up the timer for an interval
+        last_capture_time = time.time()
+
+        while True: 
+            # Capture each frame from the video source
+            ret, frame = cap.read()
+            if not ret:
+                print("Failed to retrieve frame from the video source.")
+                break
+
+            # Check if X seconds have passed since the last analysis
+            current_time = time.time()
+            if current_time - last_capture_time >= 0.5: #here we determine the time intervall
+                try:
+                    # Analyze the frame for emotion
+                    result = DeepFace.analyze(img_path=frame, actions=['emotion'], enforce_detection=False)
+                    if result:
+                        # Extract the dominant emotion
+                        dominant_emotion = result[0]['dominant_emotion']
+                        emotion_scores = result[0]['emotion']
+
+                        # Print the results
+                        print(f"Dominant Emotion: {dominant_emotion}")
+                        print(f"Emotion Scores: {emotion_scores}")
+
+                except Exception as e:
+                    print(f"An error occurred while analyzing the frame: {e}")
+
+                # Update the last capture time
+                last_capture_time = current_time
+
+            # Optional: Display the frame in real-time (press 'q' to quit)
+            cv2.imshow('Live Stream', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Release the video capture and close windows when done
+        cap.release()
+        cv2.destroyAllWindows()
+
+    except Exception as e:
+        print("An error occurred during live streaming:", e)
+
+    # Run the function with your desired input
+    # For camera URL: analyze_emotion_live(source='stream')
+    # For webcam: analyze_emotion_live(source='webcam')
+
 
