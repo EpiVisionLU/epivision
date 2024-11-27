@@ -52,3 +52,17 @@ EpiVision focuses on developing a real-time face recognition system that process
 ## mov-to-db.py
 
 Either run the mov-to-db.py file from the terminal and use <path to video> <Name> as args (`python mov-to-db.py /Users/epi/Downloads/movie.mov John`), or run the program without args and add video path and name as inputs when prompted.
+
+## offline-emotion-analyzer.py
+Program to analyze video frames for emotions using DeepFace.
+
+Usage:
+    python offline-emotion-analyzer.py --video <video_path> --frame_skip <number> --detector_backend <backend>
+
+Arguments:
+    --video: Path to the video file to be analyzed.
+    --frame_skip: Number of frames to skip between analyses (default is 10). To analyze every frame, frame_skip = 1.
+    --detector_backend: Face detection model to use ('opencv', 'retinaface', 'mtcnn', etc.).
+                       Default is 'retinaface'.
+
+If no arguments are provided, the program will prompt the user for video path and frame skip values.
