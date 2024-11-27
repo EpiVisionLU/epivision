@@ -1,8 +1,24 @@
-# offline-emotion-analyzer.py
-'''
-@author:Simon
-'''
+# facial_feature_analyzer.py
+# @author: SRO
+# Created on: 2024-11-27
+
+"""
+Program to analyze video frames for emotions using DeepFace.
+
+Usage:
+    python facial_feature_analyzer.py --video <video_path> --frame_skip <number> --detector_backend <backend>
+
+Arguments:
+    --video: Path to the video file to be analyzed.
+    --frame_skip: Number of frames to skip between analyses (default is 10).
+    --detector_backend: Face detection model to use ('opencv', 'retinaface', 'mtcnn', etc.).
+                       Default is 'retinaface'.
+
+If no arguments are provided, the program will prompt the user for video path and frame skip values.
+
+"""
 #%%
+
 import cv2
 from deepface import DeepFace
 import pandas as pd
@@ -10,7 +26,7 @@ import argparse
 import os
 
 #%%
-def analyze_video(video_path, output_csv, frame_skip=10):
+def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retinaface'):
     """
     Analyze video frames to detect emotions.
     - video_path: Path to the video file.
@@ -26,15 +42,23 @@ def analyze_video(video_path, output_csv, frame_skip=10):
         print(f"Error: Could not open video file '{video_path}'.")
         return
 
+
+    total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    video_fps = float(cap.get(cv2.CAP_PROP_FPS))
+    print(f"Video selected: {video_path}. FPS: {video_fps}. Total frames: {total_frames}. Frames to be analyzed: ~ {round(total_frames / frame_skip)}")
+
     results = []
 
     try:
         while cap.isOpened():
             current_frame = int(cap.get(cv2.CAP_PROP_POS_FRAMES))
-            total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
 
             # Ensure the current frame is within bounds and skip frames accordingly
             if current_frame >= total_frames:
+                break
+              
+            if (current_frame > total_frames - (total_frames % frame_skip)):
+                print(f"Analysis complete. Last frame analyzed: {current_frame - 1}")
                 break
 
             if (current_frame % frame_skip != 0) and (current_frame + frame_skip < total_frames):
@@ -49,7 +73,7 @@ def analyze_video(video_path, output_csv, frame_skip=10):
 
             try:
                 # Use RetinaFace for analysis
-                analysis = DeepFace.analyze(frame, actions=['emotion'], detector_backend='retinaface', enforce_detection=False)
+                analysis = DeepFace.analyze(frame, actions=['emotion'], detector_backend=detector_backend, enforce_detection=False)
                 for face in analysis:
                     results.append({
                         "frame": current_frame,
@@ -65,7 +89,8 @@ def analyze_video(video_path, output_csv, frame_skip=10):
                         "face_x": face["region"].get("x", 0),
                         "face_height": face["region"].get("h", 0),
                         "face_width": face["region"].get("w", 0),
-                        "face_confidence": face.get("face_confidence")
+                        "face_confidence": face.get("face_confidence"),
+                        "time_code": round(current_frame / video_fps, 2)
                     })
             except Exception as e:
                 print(f"Error analyzing frame {current_frame}: {e}")
@@ -75,14 +100,15 @@ def analyze_video(video_path, output_csv, frame_skip=10):
     # Write results to CSV
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)
-    print(f"Analysis complete. Results saved to {output_csv}")
+    print(f"Results saved to {output_csv}")
 
 #%%
 # Run the analysis
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Analyze emotions in video frames.")
+    parser.add_argument("--detector_backend", type=str, default='retinaface', help="Face detection model to use (e.g., 'opencv', 'retinaface', 'mtcnn', etc.)")
     parser.add_argument("--video", type=str, help="Path to the video file.")
-    parser.add_argument("--frame_skip", type=int, default=6, help="Number of frames to skip between analyses.")
+    parser.add_argument("--frame_skip", type=int, default=5, help="Number of frames to skip between analyses.")
     args = parser.parse_args()
 
     # If arguments are not provided, prompt the user for inputs
@@ -94,4 +120,4 @@ if __name__ == "__main__":
         frame_skip = int(input("Enter the number of frames to skip: "))
 
     output_csv = f"{video_path[:-4]}.csv"
-    analyze_video(video_path, output_csv, frame_skip=frame_skip)
+    analyze_video(video_path, output_csv, frame_skip=frame_skip, detector_backend=args.detector_backend)
