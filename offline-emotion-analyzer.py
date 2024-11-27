@@ -42,7 +42,6 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
         print(f"Error: Could not open video file '{video_path}'.")
         return
 
-
     total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     video_fps = float(cap.get(cv2.CAP_PROP_FPS))
     print(f"Video selected: {video_path}. FPS: {video_fps}. Total frames: {total_frames}. Frames to be analyzed: ~ {round(total_frames / frame_skip)}")
@@ -61,9 +60,9 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
                 print(f"Analysis complete. Last frame analyzed: {current_frame - 1}")
                 break
 
-            if (current_frame % frame_skip != 0) and (current_frame + frame_skip < total_frames):
-                cap.set(cv2.CAP_PROP_POS_FRAMES, current_frame + frame_skip - 1)
-                continue
+            # Skip frames logic using cap.grab() for better efficiency
+            for _ in range(frame_skip - 1):
+                cap.grab()
 
             ret, frame = cap.read()
             if not ret:
@@ -74,9 +73,11 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
             try:
                 # Use RetinaFace for analysis
                 analysis = DeepFace.analyze(frame, actions=['emotion'], detector_backend=detector_backend, enforce_detection=False)
-                for face in analysis:
+                for person_idx, face in enumerate(analysis, start=1):
                     results.append({
                         "frame": current_frame,
+                        "time_code": round(current_frame / video_fps, 2),
+                        "id": person_idx,
                         "dominant_emotion": face["dominant_emotion"],
                         "angry": face["emotion"].get("angry", 0),
                         "disgust": face["emotion"].get("disgust", 0),
@@ -89,8 +90,7 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
                         "face_x": face["region"].get("x", 0),
                         "face_height": face["region"].get("h", 0),
                         "face_width": face["region"].get("w", 0),
-                        "face_confidence": face.get("face_confidence"),
-                        "time_code": round(current_frame / video_fps, 2)
+                        "face_confidence": face.get("face_confidence")
                     })
             except Exception as e:
                 print(f"Error analyzing frame {current_frame}: {e}")
@@ -109,15 +109,18 @@ if __name__ == "__main__":
     parser.add_argument("--detector_backend", type=str, default='retinaface', help="Face detection model to use (e.g., 'opencv', 'retinaface', 'mtcnn', etc.)")
     parser.add_argument("--video", type=str, help="Path to the video file.")
     parser.add_argument("--frame_skip", type=int, default=5, help="Number of frames to skip between analyses.")
-    args = parser.parse_args()
+    args, unknown = parser.parse_known_args()
 
     # If arguments are not provided, prompt the user for inputs
     if args.video:
         video_path = args.video
         frame_skip = args.frame_skip
     else:
-        video_path = input("Enter the path to the video file: ")
-        frame_skip = int(input("Enter the number of frames to skip: "))
-
+        #video_path = input("Enter the path to the video file: ")
+        #frame_skip = int(input("Enter the number of frames to skip: "))
+        video_path = "two-faces.mov"
+        frame_skip = 5
     output_csv = f"{video_path[:-4]}.csv"
     analyze_video(video_path, output_csv, frame_skip=frame_skip, detector_backend=args.detector_backend)
+
+# %%
