@@ -116,10 +116,9 @@ if __name__ == "__main__":
         video_path = args.video
         frame_skip = args.frame_skip
     else:
-        #video_path = input("Enter the path to the video file: ")
-        #frame_skip = int(input("Enter the number of frames to skip: "))
-        video_path = "two-faces.mov"
-        frame_skip = 5
+        video_path = input("Enter the path to the video file: ")
+        frame_skip = int(input("Enter the number of frames to skip: "))
+
     output_csv = f"{video_path[:-4]}.csv"
     analyze_video(video_path, output_csv, frame_skip=frame_skip, detector_backend=args.detector_backend)
 
