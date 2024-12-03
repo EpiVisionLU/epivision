@@ -5,6 +5,7 @@ import pandas as pd
 import os
 import requests
 import time
+import json
 
 
 #Simons funktion
@@ -274,17 +275,42 @@ def temp_main ():
     
 
 
+def write_to_json(file_path, people_data):
+    """
+    Appends face emotion analysis data to a JSON file.
+
+    Args:
+        file_path (str): The path to the JSON file.
+        people_data (list): A list of dictionaries containing the analysis data.
+    """
+    try:
+        # Load existing data if the file exists, or initialize an empty structure
+        try:
+            with open(file_path, "r") as json_file:
+                data = json.load(json_file)
+        except FileNotFoundError:
+            data = {"people": []}
+
+        # Append new data
+        data["people"].extend(people_data)
+
+        # Write updated data back to the file
+        with open(file_path, "w") as json_file:
+            json.dump(data, json_file, indent=4)
+    except Exception as e:
+        print(f"An error occurred while writing to the JSON file: {e}")
 
 def analyze_emotion_live(source='stream'):
     """
-    Analyzes emotions live from a video source.
-    
+    Analyzes emotions live from a video source and writes the results to a JSON file.
+
     Args:
         source (str): 'stream' for camera URL or 'webcam' for webcam feed.
     """
     camera_url = 'http://righteye.local:8080/stream/video.mjpeg'
     video_source = 0 if source == 'webcam' else camera_url  # 0 for the default webcam
-    
+    output_file = "people.json"  # File to store JSON data
+
     try:
         # Initialize video capture with the chosen source
         cap = cv2.VideoCapture(video_source)
@@ -292,7 +318,7 @@ def analyze_emotion_live(source='stream'):
         # Set up the timer for an interval
         last_capture_time = time.time()
 
-        while True: 
+        while True:
             # Capture each frame from the video source
             ret, frame = cap.read()
             if not ret:
@@ -301,18 +327,32 @@ def analyze_emotion_live(source='stream'):
 
             # Check if X seconds have passed since the last analysis
             current_time = time.time()
-            if current_time - last_capture_time >= 0.5: #here we determine the time intervall
+            if current_time - last_capture_time >= 1:  # Interval in seconds
                 try:
                     # Analyze the frame for emotion
                     result = DeepFace.analyze(img_path=frame, actions=['emotion'], enforce_detection=False)
+                
                     if result:
-                        # Extract the dominant emotion
-                        dominant_emotion = result[0]['dominant_emotion']
-                        emotion_scores = result[0]['emotion']
+                        # Prepare data for each detected face
+                        people_data = []
+                        for idx, face in enumerate(result):
+                            emotion_scores = face['emotion']
+                            dominant_emotion = face['dominant_emotion']
+                            # Placeholder positions (you can update this with actual face coordinates later)
+                            face_position_x = face['region']['x']  # Replace with actual data if available
+                            face_position_y = face['region']['y']  # Replace with actual data if available
 
-                        # Print the results
-                        print(f"Dominant Emotion: {dominant_emotion}")
-                        print(f"Emotion Scores: {emotion_scores}")
+                            # Build the data structure for this face
+                            people_data.append({
+                                "Name": str(idx),  # Placeholder name
+                                "Dominant Emotion": dominant_emotion,
+                                "Emotion Scores": emotion_scores,
+                                "Face Position X": face_position_x,
+                                "Face Position Y": face_position_y
+                            })
+
+                        # Write to the JSON file
+                        write_to_json(output_file, people_data)
 
                 except Exception as e:
                     print(f"An error occurred while analyzing the frame: {e}")
@@ -332,8 +372,65 @@ def analyze_emotion_live(source='stream'):
     except Exception as e:
         print("An error occurred during live streaming:", e)
 
-    # Run the function with your desired input
-    # For camera URL: analyze_emotion_live(source='stream')
-    # For webcam: analyze_emotion_live(source='webcam')
 
+
+    # Exempel json
+    '''
+    Alternativ 1, Sortera efter emotions:
+    emotions.json
+    [
+    {
+    "Dominant emotions": ["Happy", "Sad"], (alternativt en siffra och sen allocatar vi varje känsla till en siffra)
+    "Emotion scores": [{
+        "angry": 0.1, 
+        "sad": 0.1,
+        "happy": 0.8
+        },
+        {
+        "angry": 0.1,
+        "sad": 0.8,
+        "happy": 0.1
+        }],
+    "Face position X": [120, 300],
+    "Face Position Y": [180, 54],
+    "People": ["Ruben", "Simon"]
+    }
+    ]
+
+    Alternativ 2, sortera efter personer:
+    people.json
+    
+    
+    {"people":
+    [
+    {
+    "Name": "Ruben",
+    "Dominant Emotion": "Happy",
+    "Emotion Scores": {
+        "angry": 0.1, 
+        "sad": 0.1,
+        "happy": 0.8
+        },
+    "Face Position X": 120,
+    "Face Position Y": 180
+    },
+
+    {
+    "Name": "Simon",
+    "Dominant Emotion": "Sad",
+    "Emotion Scores": {
+        "angry": 0.1, 
+        "sad": 0.8,
+        "happy": 0.1
+        },
+    "Face Position X": 300,
+    "Face Position Y": 54
+    }
+    ]
+    }
+      
+
+
+
+    '''
 
