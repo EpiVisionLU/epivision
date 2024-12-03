@@ -47,6 +47,9 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
     print(f"Video selected: {video_path}. FPS: {video_fps}. Total frames: {total_frames}. Frames to be analyzed: ~ {round(total_frames / frame_skip)}")
 
     results = []
+    
+    results.append({'video_path':video_path,'frame_skip':frame_skip, 'video_fps': video_fps,})
+
 
     try:
         while cap.isOpened():
@@ -122,4 +125,10 @@ if __name__ == "__main__":
     output_csv = f"{video_path[:-4]}.csv"
     analyze_video(video_path, output_csv, frame_skip=frame_skip, detector_backend=args.detector_backend)
 
-# %%
+#%%
+    results = []
+    results.append(1)
+    results.append(3)
+    print(results)
+    
+   # results.append({'video_path':video_path,'frame_skip':frame_skip, 'video_fps': video_fps,})
