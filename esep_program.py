@@ -4,20 +4,22 @@ import requests
 import time
 import curses
 from urllib.parse import quote
-#%%
+
 CSV_FILE = "esep.csv"
 LOG_FILE = "experiment_log.csv"
-EPI_BASE_URL = "http://localhost:8000/command/EpiSpeech.say/0/0/"
-#%%
+EPI_BASE_URL_SPEECH = "http://localhost:8000/command/EpiSpeech.say/0/0/"
+EPI_BASE_URL_MOTION = "http://localhost:8000/command/SR.trig/"
+
 def load_script(filename):
     """
     Load the script from CSV.
-    Expected columns: Phase;Phase description;Line;Script
+    Expected columns: Phase;Phase description;Line;Script;Motion
+    Motion may be empty.
     """
     with open(filename, 'r', encoding='utf-8-sig') as f:
         reader = csv.DictReader(f, delimiter=';')
         
-        required_cols = {"Phase", "Phase description", "Line", "Script"}
+        required_cols = {"Phase", "Phase description", "Line", "Script", "Motion"}
         if not required_cols.issubset(reader.fieldnames):
             raise ValueError(f"CSV file must contain the columns: {required_cols}")
         
@@ -26,6 +28,15 @@ def load_script(filename):
             # Convert Phase and Line to int for easier sorting
             row['Phase'] = int(row['Phase'])
             row['Line'] = int(row['Line'])
+            
+            # Handle motion column
+            motion_str = row.get('Motion', '').strip()
+            if motion_str.isdigit():
+                row['Motion'] = int(motion_str)
+            else:
+                # If empty or non-digit, set None
+                row['Motion'] = None
+            
             script_data.append(row)
     return script_data
 
@@ -43,7 +54,8 @@ def organize_phases(script_data):
                 'Phase description': row['Phase description'],
                 'lines': []
             }
-        phases[p]['lines'].append((row['Line'], row['Script']))
+        # We'll store tuples with (line_num, script_text, motion)
+        phases[p]['lines'].append((row['Line'], row['Script'], row['Motion']))
     
     # Sort lines within each phase
     for p in phases:
@@ -64,16 +76,27 @@ def randomize_phases(phases):
     random.shuffle(middle)
     return [phases[0]] + middle + [phases[-1]]
 
-def send_to_epi(text):
+def send_speech_to_epi(text):
     """
-    Send the given text to Epi via a GET request, properly URL encoded.
+    Send the given speech text to Epi via a GET request, properly URL encoded.
     """
     safe_text = quote(text)
-    url = EPI_BASE_URL + safe_text
+    url = EPI_BASE_URL_SPEECH + safe_text
     try:
         requests.get(url)
     except requests.exceptions.RequestException as e:
-        print(f"Error sending request to Epi: {e}")
+        print(f"Error sending speech request to Epi: {e}")
+
+def send_motion_to_epi(motion_cmd):
+    """
+    Send the given motion command (int) to Epi.
+    Example: motion_cmd = 0 -> http://localhost:8000/command/SR.trig/0/0/0
+    """
+    url = f"{EPI_BASE_URL_MOTION}{motion_cmd}/0/0"
+    try:
+        requests.get(url)
+    except requests.exceptions.RequestException as e:
+        print(f"Error sending motion request to Epi: {e}")
 
 def log_event(logfile, start_time, phase, line, text):
     """
@@ -99,7 +122,6 @@ def main(stdscr):
     phases = randomize_phases(phases)
     
     # Initialize logging
-    # Write header
     with open(LOG_FILE, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(["Time_since_start(s)", "Phase", "Line", "Script"])
@@ -113,33 +135,36 @@ def main(stdscr):
     def display_current_line():
         stdscr.clear()
         current_phase = phases[current_phase_index]
-        line_num, line_text = current_phase['lines'][current_line_index]
+        line_num, line_text, motion_cmd = current_phase['lines'][current_line_index]
         # Display the current line
-        stdscr.addstr(0, 0, "Controls: SPACE/f=Forward, b=Backward, Y=Yes, N=No, Q=Quit")
+        stdscr.addstr(0, 0, f"Phase {current_phase['Phase']}: {current_phase['Phase description']}")
         stdscr.addstr(1, 0, f"Line {line_num}: {line_text}")
-        stdscr.addstr(2, 0, f"Phase {current_phase['Phase']}: {current_phase['Phase description']}")
+        stdscr.addstr(3, 0, "Controls: SPACE/f=Forward, b=Backward, Y=Yes, N=No, P=Please try again, R=Re-read instructions, t=Custom message, Q=Quit")
         stdscr.refresh()
-        return (current_phase['Phase'], line_num, line_text)
+        return (current_phase['Phase'], line_num, line_text, motion_cmd)
 
-    # Show the first line
-    phase_num, line_num, line_text = display_current_line()
-    send_to_epi(line_text)
-    log_event(LOG_FILE, start_time, phase_num, line_num, line_text)
+    def send_line_actions(phase_num, line_num, line_text, motion_cmd):
+        # If there's a script line, send it
+        if line_text.strip():
+            send_speech_to_epi(line_text)
+            log_event(LOG_FILE, start_time, phase_num, line_num, line_text)
+
+        # If there's a motion command, send it after speech
+        if motion_cmd is not None:
+            send_motion_to_epi(motion_cmd)
+            # Log the motion command
+            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Motion] {motion_cmd}")
+
+    phase_num, line_num, line_text, motion_cmd = display_current_line()
+    send_line_actions(phase_num, line_num, line_text, motion_cmd)
 
     # Key loop
     while True:
         key = stdscr.getch()
+        ch = chr(key) if key != -1 else ''
 
         current_phase = phases[current_phase_index]
         line_count = len(current_phase['lines'])
-
-        # Convert key to char if possible
-        if key == curses.KEY_RESIZE:
-            # Just redraw on resize
-            phase_num, line_num, line_text = display_current_line()
-            continue
-
-        ch = chr(key) if key != -1 else ''
 
         if ch in [' ', 'f']:
             # Move to next line
@@ -152,9 +177,8 @@ def main(stdscr):
                     # No more phases, end the experiment
                     break
 
-            phase_num, line_num, line_text = display_current_line()
-            send_to_epi(line_text)
-            log_event(LOG_FILE, start_time, phase_num, line_num, line_text)
+            phase_num, line_num, line_text, motion_cmd = display_current_line()
+            send_line_actions(phase_num, line_num, line_text, motion_cmd)
 
         elif ch == 'b':
             # Move to previous line
@@ -169,32 +193,54 @@ def main(stdscr):
                 else:
                     current_line_index = len(phases[current_phase_index]['lines']) - 1
 
-            phase_num, line_num, line_text = display_current_line()
-            send_to_epi(line_text)
-            log_event(LOG_FILE, start_time, phase_num, line_num, line_text)
+            phase_num, line_num, line_text, motion_cmd = display_current_line()
+            send_line_actions(phase_num, line_num, line_text, motion_cmd)
 
         elif ch in ['Y', 'y']:
             # Send "yes"
-            send_to_epi("yes")
+            send_speech_to_epi("yes")
             log_event(LOG_FILE, start_time, phase_num, line_num, "[Shortcut] yes")
+            phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['N', 'n']:
             # Send "no"
-            send_to_epi("no")
+            send_speech_to_epi("no")
             log_event(LOG_FILE, start_time, phase_num, line_num, "[Shortcut] no")
+            phase_num, line_num, line_text, motion_cmd = display_current_line()
+
+        elif ch in ['P', 'p']:
+            # "Please try again"
+            send_speech_to_epi("please_try_again")
+            log_event(LOG_FILE, start_time, phase_num, line_num, "[Shortcut] please_try_again")
+            phase_num, line_num, line_text, motion_cmd = display_current_line()
+
+        elif ch in ['R', 'r']:
+            # "I repeat: {line}"
+            repeat_text = f"I repeat: {line_text}"
+            send_speech_to_epi(repeat_text)
+            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Shortcut] {repeat_text}")
+            phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['T', 't']:
-            # Send free text
-            freetext_input = input("What should Epi say?")
-            send_to_epi(freetext_input)
-            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Custom text] {freetext_input}")
+            # Custom message
+            curses.echo()
+            stdscr.addstr(5, 0, "Enter custom message: ")
+            stdscr.clrtoeol()
+            stdscr.refresh()
+            custom_bytes = stdscr.getstr(5, 19)  # read input starting at column 19
+            curses.noecho()
+            custom_msg = custom_bytes.decode('utf-8')
+            # Send custom message
+            send_speech_to_epi(custom_msg)
+            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Custom] {custom_msg}")
+            phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['Q', 'q']:
             # Quit
             break
 
     # End of experiment
-    stdscr.addstr(5, 0, "Experiment finished. Press any key to exit.")
+    stdscr.addstr(7, 0, "Experiment finished. Press any key to exit.")
     stdscr.refresh()
     stdscr.getch()
 
