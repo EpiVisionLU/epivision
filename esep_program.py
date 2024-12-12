@@ -115,9 +115,9 @@ def main(stdscr):
         current_phase = phases[current_phase_index]
         line_num, line_text = current_phase['lines'][current_line_index]
         # Display the current line
-        stdscr.addstr(0, 0, f"Phase {current_phase['Phase']}: {current_phase['Phase description']}")
+        stdscr.addstr(0, 0, "Controls: SPACE/f=Forward, b=Backward, Y=Yes, N=No, Q=Quit")
         stdscr.addstr(1, 0, f"Line {line_num}: {line_text}")
-        stdscr.addstr(3, 0, "Controls: SPACE/f=Forward, b=Backward, Y=Yes, N=No, Q=Quit")
+        stdscr.addstr(2, 0, f"Phase {current_phase['Phase']}: {current_phase['Phase description']}")
         stdscr.refresh()
         return (current_phase['Phase'], line_num, line_text)
 
