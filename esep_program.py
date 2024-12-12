@@ -1,12 +1,19 @@
+'''
+Emotion and Stress Evoking Protocoll
+Group 4b, KOGP10/MAMN15
+LU
+Created 2024-12-10
+@author: SRO
+'''
 import csv
 import random
 import requests
 import time
 import curses
 from urllib.parse import quote
+import datetime
 
 CSV_FILE = "esep.csv"
-LOG_FILE = "experiment_log.csv"
 EPI_BASE_URL_SPEECH = "http://localhost:8000/command/EpiSpeech.say/0/0/"
 EPI_BASE_URL_MOTION = "http://localhost:8000/command/SR.trig/"
 
@@ -98,6 +105,14 @@ def send_motion_to_epi(motion_cmd):
     except requests.exceptions.RequestException as e:
         print(f"Error sending motion request to Epi: {e}")
 
+def create_log_file_name():
+    """
+    Generates a timestamped log file name.
+    """
+    current_time = datetime.datetime.now()
+    timestamp = current_time.strftime("%Y-%m-%d_%H%M")
+    return f"experiment_log_{timestamp}.csv"
+
 def log_event(logfile, start_time, phase, line, text):
     """
     Log the event (timestamp, phase, line, text) to a CSV file.
@@ -108,7 +123,7 @@ def log_event(logfile, start_time, phase, line, text):
         writer = csv.writer(f)
         writer.writerow([elapsed, phase, line, text])
 
-def main(stdscr):
+def main(stdscr, log_file):
     # Setup curses
     curses.curs_set(0)
     stdscr.clear()
@@ -122,7 +137,7 @@ def main(stdscr):
     phases = randomize_phases(phases)
     
     # Initialize logging
-    with open(LOG_FILE, 'w', newline='', encoding='utf-8') as f:
+    with open(log_file, 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(["Time_since_start(s)", "Phase", "Line", "Script"])
     
@@ -245,4 +260,5 @@ def main(stdscr):
     stdscr.getch()
 
 if __name__ == "__main__":
-    curses.wrapper(main)
+    log_file = create_log_file_name()
+    curses.wrapper(main, log_file)
