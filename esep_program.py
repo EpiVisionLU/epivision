@@ -183,6 +183,12 @@ def main(stdscr):
             send_to_epi("no")
             log_event(LOG_FILE, start_time, phase_num, line_num, "[Shortcut] no")
 
+        elif ch in ['T', 't']:
+            # Send free text
+            freetext_input = input("What should Epi say?")
+            send_to_epi(freetext_input)
+            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Custom text] {freetext_input}")
+
         elif ch in ['Q', 'q']:
             # Quit
             break
