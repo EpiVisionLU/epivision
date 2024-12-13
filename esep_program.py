@@ -279,6 +279,7 @@ if __name__ == "__main__":
     # Start the recording process before running your main logic
     recording_process = subprocess.Popen([
         "ffmpeg", 
+        "-loglevel", "quiet",
         "-i", VIDEO_STREAM_URL,
         "-r", "12",
         "-c:v", "mjpeg",
