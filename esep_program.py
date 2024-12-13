@@ -12,10 +12,12 @@ import time
 import curses
 from urllib.parse import quote
 import datetime
+import subprocess
 
 CSV_FILE = "esep.csv"
 EPI_BASE_URL_SPEECH = "http://localhost:8000/command/EpiSpeech.say/0/0/"
 EPI_BASE_URL_MOTION = "http://localhost:8000/command/SR.trig/"
+VIDEO_STREAM_URL = "http://righteye.local:8080/stream/video.mjpeg"
 
 def load_script(filename):
     """
@@ -112,6 +114,14 @@ def create_log_file_name():
     current_time = datetime.datetime.now()
     timestamp = current_time.strftime("%Y-%m-%d_%H%M")
     return f"experiment_log_{timestamp}.csv"
+
+def create_video_file_name():
+    """
+    Generates a timestamped video file name.
+    """
+    current_time = datetime.datetime.now()
+    timestamp = current_time.strftime("%Y-%m-%d_%H%M")
+    return f"experiment_log_{timestamp}.mkv"
 
 def log_event(logfile, start_time, phase, line, text):
     """
@@ -264,4 +274,20 @@ def main(stdscr, log_file):
 
 if __name__ == "__main__":
     log_file = create_log_file_name()
+    video_file = create_log_file_name()
+
+    # Start the recording process before running your main logic
+    recording_process = subprocess.Popen([
+        "ffmpeg", 
+        "-i", VIDEO_STREAM_URL,
+        "-r", "12",
+        "-c:v", "mjpeg",
+        "-q:v", "5",
+        video_file
+    ])
+
     curses.wrapper(main, log_file)
+
+    # After main() completes, stop the recording
+    recording_process.terminate()
+    recording_process.wait()
