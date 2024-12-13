@@ -1,7 +1,7 @@
 Phase;Phase description;Line;Script;Motion
-1;Introduction;1;Hello and welcome to our study! My name is Epi, and I will be interviewing you today. Thank you for taking the time to participate. Please have a seat in the chair in front of me and let me know when you’re ready.;0
+1;Introduction;1;Hello and welcome to our study! My name is Epi, and I will be interviewing you today. Thank you for taking the time to participate. Please have a seat in the chair in front of me and let me know when you’re ready.;
 1;Introduction;2;We will be doing a few activities and asking some questions. There are no right or wrong answers, so feel free to share your thoughts and experiences. Are you ready to begin?;
-1;Introduction;3;Great!;3
+1;Introduction;3;Great!;
 2;Happy;1;Could you tell me about one of your best memories, something that truly made you happy?;
 2;Happy;2;That sounds fantastic! What was it about that experience that made it so special for you?;
 3;Unprepared Speech;1;What is your dream job?;
@@ -13,10 +13,10 @@ Phase;Phase description;Line;Script;Motion
 3;Unprepared Speech;7;30 seconds lefter;
 3;Unprepared Speech;8;Only 10 seconds left;
 3;Unprepared Speech;9;Now it’s time to give your speech. I’m listening carefully.;
-3;Unprepared Speech;10;Thank you.;3
+3;Unprepared Speech;10;Thank you.;
 4;Mental arithmetic;1;Could you count backward from 1022 in steps of 13 as quickly as possible?;
 4;Mental arithmetic;2;Try to do it faster, and make sure it’s correct. If you make a mistake, please start again from 1022.;
-5;Surprise;1;Gh gh gh;4
+5;Surprise;1;Gh gh gh;3
 5;Surprise;2;Sorry for the interruption. Please continue with the task.;
 6;Sad;1;Now I’d like to ask you a few questions about personal experiences. Could you tell me about a time when you felt sad or disappointed?;
 6;Sad;2;How did that experience affect you, and how did you cope with it?;
@@ -28,5 +28,5 @@ Phase;Phase description;Line;Script;Motion
 8;Angry;3;When thinking back to that experience, do you still get angry?;
 9;Alphabetical sorting;1;Your next task is a working memory task. I will read you a list of words and I want you to sort them alphabetically. I will only read the list to you once. If I say cat, dog, ape, I want you to read back to me ape, cat, dog. Are you ready?;
 9;Alphabetical sorting;2;Zebra. Duck. Lion. Elephant. Giraffe.;
-9;Alphabetical sorting;3;Thank you.;3
+9;Alphabetical sorting;3;Thank you.;
 10;Debrief;1;Thank you so much for participating in all these tasks and sharing your thoughts with us today. We really appreciate your participation. Have a great rest of your day!;

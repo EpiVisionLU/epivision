@@ -119,6 +119,7 @@ def log_event(logfile, start_time, phase, line, text):
     Timestamp is time since start_time in seconds.
     """
     elapsed = time.time() - start_time
+    elapsed = round(elapsed, 2)
     with open(logfile, 'a', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow([elapsed, phase, line, text])
