@@ -135,7 +135,7 @@ def main(stdscr, log_file):
     phases = organize_phases(script_data)
     
     # Randomize phases except first and last
-    phases = randomize_phases(phases)
+    # phases = randomize_phases(phases) # Comment out if script should be read in order
     
     # Initialize logging
     with open(log_file, 'w', newline='', encoding='utf-8') as f:
