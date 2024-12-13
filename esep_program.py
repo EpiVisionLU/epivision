@@ -213,12 +213,14 @@ def main(stdscr, log_file):
 
         elif ch in ['Y', 'y']:
             # Send "yes"
+            send_motion_to_epi(0)
             send_speech_to_epi("yes")
             log_event(log_file, start_time, phase_num, line_num, "[Shortcut] yes")
             phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['N', 'n']:
             # Send "no"
+            send_motion_to_epi(1)
             send_speech_to_epi("no")
             log_event(log_file, start_time, phase_num, line_num, "[Shortcut] no")
             phase_num, line_num, line_text, motion_cmd = display_current_line()
