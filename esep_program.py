@@ -162,13 +162,13 @@ def main(stdscr, log_file):
         # If there's a script line, send it
         if line_text.strip():
             send_speech_to_epi(line_text)
-            log_event(LOG_FILE, start_time, phase_num, line_num, line_text)
+            log_event(log_file, start_time, phase_num, line_num, line_text)
 
         # If there's a motion command, send it after speech
         if motion_cmd is not None:
             send_motion_to_epi(motion_cmd)
             # Log the motion command
-            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Motion] {motion_cmd}")
+            log_event(log_file start_time, phase_num, line_num, f"[Motion] {motion_cmd}")
 
     phase_num, line_num, line_text, motion_cmd = display_current_line()
     send_line_actions(phase_num, line_num, line_text, motion_cmd)
@@ -214,26 +214,26 @@ def main(stdscr, log_file):
         elif ch in ['Y', 'y']:
             # Send "yes"
             send_speech_to_epi("yes")
-            log_event(LOG_FILE, start_time, phase_num, line_num, "[Shortcut] yes")
+            log_event(log_file, start_time, phase_num, line_num, "[Shortcut] yes")
             phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['N', 'n']:
             # Send "no"
             send_speech_to_epi("no")
-            log_event(LOG_FILE, start_time, phase_num, line_num, "[Shortcut] no")
+            log_event(log_file, start_time, phase_num, line_num, "[Shortcut] no")
             phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['P', 'p']:
             # "Please try again"
             send_speech_to_epi("please_try_again")
-            log_event(LOG_FILE, start_time, phase_num, line_num, "[Shortcut] please_try_again")
+            log_event(log_file, start_time, phase_num, line_num, "[Shortcut] please_try_again")
             phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['R', 'r']:
             # "I repeat: {line}"
             repeat_text = f"I repeat: {line_text}"
             send_speech_to_epi(repeat_text)
-            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Shortcut] {repeat_text}")
+            log_event(log_file, start_time, phase_num, line_num, f"[Shortcut] {repeat_text}")
             phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['T', 't']:
@@ -247,7 +247,7 @@ def main(stdscr, log_file):
             custom_msg = custom_bytes.decode('utf-8')
             # Send custom message
             send_speech_to_epi(custom_msg)
-            log_event(LOG_FILE, start_time, phase_num, line_num, f"[Custom] {custom_msg}")
+            log_event(log_file, start_time, phase_num, line_num, f"[Custom] {custom_msg}")
             phase_num, line_num, line_text, motion_cmd = display_current_line()
 
         elif ch in ['Q', 'q']:
