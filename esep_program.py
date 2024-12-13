@@ -163,7 +163,7 @@ def main(stdscr, log_file):
         if motion_cmd is not None:
             send_motion_to_epi(motion_cmd)
             # Log the motion command
-            log_event(log_file start_time, phase_num, line_num, f"[Motion] {motion_cmd}")
+            log_event(log_file, start_time, phase_num, line_num, f"[Motion] {motion_cmd}")
 
         # If there's a script line, send it
         if line_text.strip():
