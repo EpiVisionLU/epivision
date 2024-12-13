@@ -1,21 +1,22 @@
 Phase;Phase description;Line;Script;Motion
-1;Introduction;1;Hello and welcome to our study! My name is Epi, and I will be interviewing you today. Thank you for taking the time to participate. Please have a seat in the chair in front of me and let me know when you’re ready.;
-1;Introduction;2;We will be doing a few activities and asking some questions. There are no right or wrong answers, so feel free to share your thoughts and experiences. Are you ready to begin?;
-1;Introduction;3;Great!;
-2;Happy;1;Could you tell me about one of your best memories, something that truly made you happy?;
+1;Introduction;1;Hello and welcome to our study! My name is Epi, and I will be interviewing you today. Thank you for taking the time to participate. Please have a seat in the chair in front of me and let me know when you’re ready.;4
+1;Introduction;2;We will be doing a few activities and asking some questions. There are no right or wrong answers, so feel free to share your thoughts and experiences.;
+1;Introduction;3;Please remember that your participation is entirely voluntary. You can withdraw at any time without providing a reason. Are you okay with continuing?;8
+1;Introduction;4;Great!;
+2;Happy;1;I’d like to ask you a few questions about personal experiences. Could you tell me about one of your best memories, something that truly made you happy?;5
 2;Happy;2;That sounds fantastic! What was it about that experience that made it so special for you?;
 2;Happy;3;Thank you for sharing. ;
-3;Sad;1;Now I’d like to ask you a few questions about personal experiences. Could you tell me about a time when you felt sad or disappointed?;
-3;Sad;2;How did that experience affect you, and how did you cope with it?;
-3;Sad;3;Thank you for sharing. ;
-4;Disgust;1;Have you ever encountered something that you found really disgusting or repulsive?;
-4;Disgust;2;Could you please explain the smell of that situation?;
-4;Disgust;3;Thank you!;
-5;Angry;1;Can you recall a situation where you felt really frustrated or angry?;
+3;Disgust;1;Have you ever encountered something that you found really disgusting or repulsive?;8
+3;Disgust;2;Could you please explain the smell of that situation?;
+3;Disgust;3;Thank you!;
+4;Sad;1;Could you tell me about a time when you felt sad or disappointed?;6
+4;Sad;2;How did that experience affect you, and how did you cope with it?;
+4;Sad;3;Thank you for sharing. ;
+5;Angry;1;Can you recall a situation where you felt really frustrated or angry?;7
 5;Angry;2;What was the most frustrating aspect about that situation?;
 5;Angry;3;When thinking back to that experience, do you still get angry?;
 5;Angry;4;Thank you for sharing. ;
-6;Alphabetical sorting;1;Your next task is a working memory task. I will read you a list of words and I want you to sort them alphabetically. If I say Pear, Apple, Orange, I want you to read back to me Apple, Orange, Pear. Are you ready?;
+6;Alphabetical sorting;1;Your next task is a working memory task. I will read you a list of words and I want you to sort them alphabetically. If I say Pear, Apple, Orange, I want you to read back to me Apple, Orange, Pear. Are you ready?;8
 6;Alphabetical sorting;2;Bed, Rest, Awake;
 6;Alphabetical sorting;3;Tired, Dream, Snooze, Nap;
 6;Alphabetical sorting;4;Peace. Yawn. Snore. Blanket. Drowzy.;
