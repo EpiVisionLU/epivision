@@ -3,9 +3,9 @@ Phase;Phase description;Line;Script;Motion
 1;Introduction;2;We will be doing a few activities and asking some questions. There are no right or wrong answers, so feel free to share your thoughts and experiences.;
 1;Introduction;3;Please remember that your participation is entirely voluntary. You can withdraw at any time without providing a reason. Are you okay with continuing?;8
 1;Introduction;4;Great!;9
-2;Happy;1;I’d like to ask you a few questions about personal experiences. Could you tell me about one of your best memories, something that truly made you happy?;5
+2;Happy;1;I’d like to ask you a few questions about personal experiences. Could you tell me about one of your best memories, something that truly made you happy?;11
 2;Happy;2;That sounds fantastic! What was it about that experience that made it so special for you?;10
-2;Happy;3;Thank you for sharing. ;
+2;Happy;3;Thank you for sharing. ;5
 3;Disgust;1;Have you ever encountered something that you found really disgusting or repulsive?;8
 3;Disgust;2;Could you please explain the smell of that situation?;10
 3;Disgust;3;Thank you!;
@@ -23,7 +23,7 @@ Phase;Phase description;Line;Script;Motion
 6;Alphabetical sorting;5;Very good. Thank you.;
 7;Mental arithmetic;1;Could you count backward from 1022 in steps of 13 as quickly as possible?;9
 7;Mental arithmetic;2;Try to do it faster, and make sure it’s correct. If you make a mistake, please start again from 1022.;7
-7;Mental arithmetic;3;Wait wait wait;3
+7;Mental arithmetic;3;Wait;3
 7;Mental arithmetic;4;I am sorry for the interruption. Please start again from 1022.;
-7;Mental arithmetic;5;Great. Thank you.;
-8;Debrief;1;Thank you so much for participating in all these tasks and sharing your thoughts with us today. We really appreciate your participation. Have a great rest of your day!;
+7;Mental arithmetic;5;Great. Thank you.;5
+8;Debrief;1;Thank you so much for participating in all these tasks and sharing your thoughts with us today. We really appreciate your participation. Have a great rest of your day!;11
