@@ -274,7 +274,7 @@ def main(stdscr, log_file):
 
 if __name__ == "__main__":
     log_file = create_log_file_name()
-    video_file = create_log_file_name()
+    video_file = create_video_file_name()
 
     # Start the recording process before running your main logic
     recording_process = subprocess.Popen([
