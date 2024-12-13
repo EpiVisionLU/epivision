@@ -19,6 +19,22 @@ EPI_BASE_URL_SPEECH = "http://localhost:8000/command/EpiSpeech.say/0/0/"
 EPI_BASE_URL_MOTION = "http://localhost:8000/command/SR.trig/"
 VIDEO_STREAM_URL = "http://righteye.local:8080/stream/video.mjpeg"
 
+def record_video(video_file):
+    """
+    Start recording the MJPEG stream at a reduced frame rate.
+    Returns the subprocess.Popen object so we can stop it later.
+    """
+    process = subprocess.Popen([
+        "ffmpeg",
+        "-loglevel", "quiet",
+        "-i", VIDEO_STREAM_URL,
+        "-r", "12",
+        "-c:v", "mjpeg",
+        "-q:v", "5",
+        video_file
+    ])
+    return process
+
 def load_script(filename):
     """
     Load the script from CSV.
@@ -277,15 +293,7 @@ if __name__ == "__main__":
     video_file = create_video_file_name()
 
     # Start the recording process before running your main logic
-    recording_process = subprocess.Popen([
-        "ffmpeg", 
-        "-loglevel", "quiet",
-        "-i", VIDEO_STREAM_URL,
-        "-r", "12",
-        "-c:v", "mjpeg",
-        "-q:v", "5",
-        video_file
-    ])
+    #recording_process = record_video(video_file) #comment out to not record
 
     curses.wrapper(main, log_file)
 
