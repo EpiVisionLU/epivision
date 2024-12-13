@@ -154,21 +154,21 @@ def main(stdscr, log_file):
         # Display the current line
         stdscr.addstr(0, 0, f"Phase {current_phase['Phase']}: {current_phase['Phase description']}")
         stdscr.addstr(1, 0, f"Line {line_num}: {line_text}")
-        stdscr.addstr(3, 0, "Controls: SPACE/f=Forward, b=Backward, Y=Yes, N=No, P=Please try again, R=Re-read instructions, t=Custom message, Q=Quit")
+        stdscr.addstr(5, 0, "Controls: SPACE/f=Forward, b=Backward, Y=Yes, N=No, P=Please try again, R=Re-read instructions, t=Custom message, Q=Quit")
         stdscr.refresh()
         return (current_phase['Phase'], line_num, line_text, motion_cmd)
 
     def send_line_actions(phase_num, line_num, line_text, motion_cmd):
-        # If there's a script line, send it
-        if line_text.strip():
-            send_speech_to_epi(line_text)
-            log_event(log_file, start_time, phase_num, line_num, line_text)
-
         # If there's a motion command, send it after speech
         if motion_cmd is not None:
             send_motion_to_epi(motion_cmd)
             # Log the motion command
             log_event(log_file start_time, phase_num, line_num, f"[Motion] {motion_cmd}")
+
+        # If there's a script line, send it
+        if line_text.strip():
+            send_speech_to_epi(line_text)
+            log_event(log_file, start_time, phase_num, line_num, line_text)
 
     phase_num, line_num, line_text, motion_cmd = display_current_line()
     send_line_actions(phase_num, line_num, line_text, motion_cmd)
