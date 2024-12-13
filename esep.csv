@@ -1,17 +1,22 @@
-Phase;Phase description;Line;Script;SR
+Phase;Phase description;Line;Script;Motion
 1;Introduction;1;Hello and welcome to our study! My name is Epi, and I will be interviewing you today. Thank you for taking the time to participate. Please have a seat in the chair in front of me and let me know when you’re ready.;0
 1;Introduction;2;We will be doing a few activities and asking some questions. There are no right or wrong answers, so feel free to share your thoughts and experiences. Are you ready to begin?;
 1;Introduction;3;Great!;3
 2;Happy;1;Could you tell me about one of your best memories, something that truly made you happy?;
 2;Happy;2;That sounds fantastic! What was it about that experience that made it so special for you?;
 3;Unprepared Speech;1;What is your dream job?;
-3;Unprepared Speech;2;Now we would like to conduct a task that is part of our study on communication skills. Think about what your dream job is. You will have two minutes to prepare a short speech on why you would be the ideal candidate for your dream job. There’s paper and a pen on the table. After the preparation time, you will deliver the speech to me. I will let you know when half of the time has passed. Your time starts now.;
-3;Unprepared Speech;3;One minute has passed.;
-3;Unprepared Speech;4;Now it’s time to give your speech. I’m listening carefully.;
-3;Unprepared Speech;5;Thank you.;3
+3;Unprepared Speech;2;Good. Now we would like to conduct a task that is part of our study on communication skills. Could you please tell me what is your dream job?;
+3;Unprepared Speech;3;Good. You will now have two minutes to prepare a short speech on why you would be the ideal candidate for your dream job.;
+3;Unprepared Speech;4;There’s paper and a pen on the table.;2
+3;Unprepared Speech;5;After the preparation time, you will deliver the speech to me. I will let you know how much time has passed. Your time starts now.;
+3;Unprepared Speech;6;One minute has passed.;
+3;Unprepared Speech;7;30 seconds lefter;
+3;Unprepared Speech;8;Only 10 seconds left;
+3;Unprepared Speech;9;Now it’s time to give your speech. I’m listening carefully.;
+3;Unprepared Speech;10;Thank you.;3
 4;Mental arithmetic;1;Could you count backward from 1022 in steps of 13 as quickly as possible?;
 4;Mental arithmetic;2;Try to do it faster, and make sure it’s correct. If you make a mistake, please start again from 1022.;
-5;Surprise;1;Gh gh gh gh gh gh ghgh gh;4
+5;Surprise;1;Gh gh gh;4
 5;Surprise;2;Sorry for the interruption. Please continue with the task.;
 6;Sad;1;Now I’d like to ask you a few questions about personal experiences. Could you tell me about a time when you felt sad or disappointed?;
 6;Sad;2;How did that experience affect you, and how did you cope with it?;
