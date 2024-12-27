@@ -76,8 +76,8 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
                 for person_idx, face in enumerate(analysis, start=1):
                     results.append({
                         "frame": current_frame,
-                        "time_code": round(current_frame / video_fps, 2),
-                        "id": person_idx,
+                        "time_code": round(current_frame / video_fps, 4),
+                        "id": int(person_idx),
                         "dominant_emotion": face["dominant_emotion"],
                         "angry": face["emotion"].get("angry", 0),
                         "disgust": face["emotion"].get("disgust", 0),
@@ -100,6 +100,19 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
     # Write results to CSV
     df = pd.DataFrame(results)
     df.to_csv(output_csv, index=False)
+
+    # Add meta data to csv 
+    # Reopen the file to prepend the metadata
+    file_meta = f'# {{"video_path": "{video_path}", "frame_skip": {frame_skip}, "video_fps": {video_fps}}}'
+
+    # Read the CSV content
+    with open(output_csv, 'r') as file:
+        csv_content = file.read()
+
+    # Write the metadata followed by the original CSV content
+    with open(output_csv, 'w') as file:
+        file.write(file_meta + '\n' + csv_content)
+
     print(f"Results saved to {output_csv}")
 
 #%%
@@ -121,5 +134,3 @@ if __name__ == "__main__":
 
     output_csv = f"{video_path[:-4]}.csv"
     analyze_video(video_path, output_csv, frame_skip=frame_skip, detector_backend=args.detector_backend)
-
-# %%
