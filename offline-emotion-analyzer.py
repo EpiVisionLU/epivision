@@ -103,7 +103,7 @@ def analyze_video(video_path, output_csv, frame_skip=10, detector_backend='retin
 
     # Add meta data to csv 
     # Reopen the file to prepend the metadata
-    file_meta = f"# {{'video_path': '{video_path}', 'frame_skip': {frame_skip}, 'video_fps': {video_fps}}}"
+    file_meta = f'# {{"video_path": "{video_path}", "frame_skip": {frame_skip}, "video_fps": {video_fps}}}'
 
     # Read the CSV content
     with open(output_csv, 'r') as file:
