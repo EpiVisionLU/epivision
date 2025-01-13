@@ -497,3 +497,142 @@ def analyze_emotion_live(source='stream'):
 
     '''
 
+
+def demo_mode(source='stream'):
+    """
+    Demonstrates real-time emotion analysis with bounding boxes and overlays.
+    Press 'q' to exit the demo.
+
+    Args:
+        source (str): 'stream' for Epi's camera or 'webcam' for local webcam.
+    """
+    # URL for Epi's camera
+    camera_url = 'http://righteye.local:8080/stream/video.mjpeg'
+    video_source = 0 if source == 'webcam' else camera_url  # 0 uses default webcam
+
+    try:
+        # Initialize video capture
+        cap = cv2.VideoCapture(video_source)
+        if not cap.isOpened():
+            print(f"Could not open video source: {video_source}")
+            return
+
+        # Timer for when to analyze the next frame
+        last_capture_time = time.time()
+        faces_current_analysis = None  # Will store the most recent list of faces & emotions
+
+        while True:
+            ret, frame = cap.read()
+            if not ret:
+                print("Failed to retrieve frame from the video source.")
+                break
+
+            # Periodically analyze the frame (e.g., every 1 second)
+            current_time = time.time()
+            if current_time - last_capture_time >= 1:  # adjust interval if needed
+                try:
+                    # Analyze faces in the current frame
+                    result = DeepFace.analyze(
+                        img_path=frame,
+                        actions=['emotion'],
+                        enforce_detection=False  # set to True if you want strict face detection
+                    )
+
+                    # Store the analysis for overlay in subsequent frames
+                    faces_current_analysis = result
+
+                except Exception as e:
+                    print(f"An error occurred during DeepFace analysis: {e}")
+                    # Keep the previous analysis in case of error
+
+                last_capture_time = current_time
+
+            # If we have any analysis results, overlay them on the frame
+            if faces_current_analysis:
+                # DeepFace can return a single dict if only one face is detected,
+                # or a list of dicts if multiple faces are detected.
+                # Normalize it to a list so we can iterate uniformly.
+                if isinstance(faces_current_analysis, dict):
+                    faces_to_draw = [faces_current_analysis]
+                else:
+                    faces_to_draw = faces_current_analysis
+
+                for idx, face_data in enumerate(faces_to_draw):
+                    # Retrieve bounding box from face_data['region']
+                    region = face_data.get('region', {})
+                    x = region.get('x', 0)
+                    y = region.get('y', 0)
+                    w = region.get('w', 0)
+                    h = region.get('h', 0)
+
+                    # Draw bounding box
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+
+                    # Display a label with an ID or name (just using idx as a placeholder)
+                    label_text = f"Person {idx}"
+                    cv2.putText(frame, label_text, (x, y - 10),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
+
+                    # Extract emotions
+                    dom_emotion = face_data.get('dominant_emotion', '')
+                    emotions = face_data.get('emotion', {})  # dict: e.g. {'angry': XX, 'happy': YY, ...}
+
+                    # Prepare overlay rectangle next to the bounding box
+                    overlay_x1 = x + w + 10
+                    overlay_y1 = y
+                    overlay_width = 210
+                    overlay_height = 240
+                    overlay_x2 = overlay_x1 + overlay_width
+                    overlay_y2 = overlay_y1 + overlay_height
+
+                    # Create semi-transparent rectangle
+                    overlay = frame.copy()
+                    cv2.rectangle(overlay, (overlay_x1, overlay_y1),
+                                  (overlay_x2, overlay_y2), (0, 0, 0), -1)
+                    alpha = 0.5
+                    frame = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
+
+                    # Dominant emotion text
+                    cv2.putText(frame, f"Dominant: {dom_emotion}",
+                                (overlay_x1 + 5, overlay_y1 + 20),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
+
+                    # Draw emotion bars
+                    bar_left = overlay_x1 + 80
+                    bar_top_start = overlay_y1 + 40
+                    bar_height = 12
+                    gap = 15
+
+                    # Emotions often in: angry, disgust, fear, happy, sad, surprise, neutral
+                    # We'll iterate them in a fixed order for consistency:
+                    emotion_order = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
+                    for i, emo_name in enumerate(emotion_order):
+                        emo_val = emotions.get(emo_name, 0.0)
+                        # Scale to a max length of 100
+                        bar_length = int(min(emo_val, 100) / 100 * 100)
+
+                        top_y = bar_top_start + i * (bar_height + gap)
+                        # Highlight if it matches the dominant emotion (case-insensitive)
+                        if dom_emotion.lower() == emo_name.lower():
+                            bar_color = (0, 255, 255)
+                        else:
+                            bar_color = (255, 255, 255)
+
+                        cv2.putText(frame, f"{emo_name}",
+                                    (overlay_x1 + 5, top_y + bar_height - 2),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.4, (255, 255, 255), 1)
+                        cv2.rectangle(frame, (bar_left, top_y),
+                                      (bar_left + bar_length, top_y + bar_height),
+                                      bar_color, -1)
+
+            # Show the frame
+            cv2.imshow('Demo Mode Stream', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
+        # Clean up
+        cap.release()
+        cv2.destroyAllWindows()
+
+    except Exception as e:
+        print(f"An error occurred in demo_mode: {e}")

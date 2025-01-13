@@ -37,7 +37,9 @@ def main():
 
     #temp_main()
 
-    analyze_emotion_live(source='webcam')
+    #analyze_emotion_live(source='webcam')
+
+    demo_mode() # For live demo
     
     # --------------------------------------------------------------------
    
