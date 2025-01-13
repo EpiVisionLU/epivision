@@ -498,7 +498,7 @@ def analyze_emotion_live(source='stream'):
     '''
 
 
-def demo_mode(source='stream'):
+def demo_mode(source='stream',detector_backend='retinaface'):
     """
     Demonstrates real-time emotion analysis with bounding boxes and overlays.
     Press 'q' to exit the demo.
@@ -535,6 +535,7 @@ def demo_mode(source='stream'):
                     result = DeepFace.analyze(
                         img_path=frame,
                         actions=['emotion'],
+                        detector_backend=detector_backend,
                         enforce_detection=False  # set to True if you want strict face detection
                     )
 
