@@ -6,6 +6,7 @@ import os
 import requests
 import time
 import json
+import random
 
 #%% Improved function for camera movement calculation with limits
 
@@ -498,17 +499,27 @@ def analyze_emotion_live(source='stream'):
     '''
 
 
-def demo_mode(source='stream',detector_backend='retinaface'):
+def demo_mode(source='stream', detector_backend='mtcnn'):
     """
     Demonstrates real-time emotion analysis with bounding boxes and overlays.
+    Adds toggles for motion (m) and speech (s).
     Press 'q' to exit the demo.
-
-    Args:
-        source (str): 'stream' for Epi's camera or 'webcam' for local webcam.
     """
+
     # URL for Epi's camera
     camera_url = 'http://righteye.local:8080/stream/video.mjpeg'
     video_source = 0 if source == 'webcam' else camera_url  # 0 uses default webcam
+
+    # Motion mappings for recognized emotions
+    motion_map = {
+        'happy':    [12, 15],
+        'angry':    [7, 16],
+        'surprise': [8, 14],
+        'sad':      [6, 13],
+        'neutral':  [5, 9, 10, 11]
+    }
+    # If no emotions for 10 seconds => random idle from this list:
+    idle_motions = [2, 3, 4, 17, 18, 19]
 
     try:
         # Initialize video capture
@@ -517,9 +528,19 @@ def demo_mode(source='stream',detector_backend='retinaface'):
             print(f"Could not open video source: {video_source}")
             return
 
-        # Timer for when to analyze the next frame
-        last_capture_time = time.time()
-        faces_current_analysis = None  # Will store the most recent list of faces & emotions
+        # Timers and toggles
+        last_capture_time = time.time()      # For DeepFace analysis
+        faces_current_analysis = None        # Latest deepface result
+
+        motion_enabled = False
+        speech_enabled = False
+
+        time_last_motion = 0.0      # Last time we triggered ANY motion
+        time_last_emotion = time.time()  # Last time we detected at least one face's emotion
+        motion_cooldown = 10.0      # 10-second cooldown after triggering motion
+
+        time_last_speech = 0.0      # Last time we triggered speech
+        speech_cooldown = 10.0      # 10-second cooldown after speaking
 
         while True:
             ret, frame = cap.read()
@@ -527,58 +548,54 @@ def demo_mode(source='stream',detector_backend='retinaface'):
                 print("Failed to retrieve frame from the video source.")
                 break
 
-            # Periodically analyze the frame (e.g., every 1 second)
             current_time = time.time()
-            if current_time - last_capture_time >= 1:  # adjust interval if needed
+
+            # 1) PERIODIC EMOTION ANALYSIS (like before)
+            if current_time - last_capture_time >= 1:  # Adjust interval if needed
                 try:
-                    # Analyze faces in the current frame
                     result = DeepFace.analyze(
                         img_path=frame,
                         actions=['emotion'],
                         detector_backend=detector_backend,
-                        enforce_detection=False  # set to True if you want strict face detection
+                        enforce_detection=False  # set True if you want strict detection
                     )
-
-                    # Store the analysis for overlay in subsequent frames
                     faces_current_analysis = result
-
                 except Exception as e:
+                    # Keep the old faces_current_analysis if an error occurs
                     print(f"An error occurred during DeepFace analysis: {e}")
-                    # Keep the previous analysis in case of error
-
                 last_capture_time = current_time
 
-            # If we have any analysis results, overlay them on the frame
+            # 2) OVERLAY RESULTS IF AVAILABLE
+            distinct_emotions_in_frame = set()
             if faces_current_analysis:
-                # DeepFace can return a single dict if only one face is detected,
-                # or a list of dicts if multiple faces are detected.
-                # Normalize it to a list so we can iterate uniformly.
+                # DeepFace might return a single dict or a list of dicts
                 if isinstance(faces_current_analysis, dict):
                     faces_to_draw = [faces_current_analysis]
                 else:
                     faces_to_draw = faces_current_analysis
 
                 for idx, face_data in enumerate(faces_to_draw):
-                    # Retrieve bounding box from face_data['region']
+                    # -- 2a) Draw bounding box
                     region = face_data.get('region', {})
                     x = region.get('x', 0)
                     y = region.get('y', 0)
                     w = region.get('w', 0)
                     h = region.get('h', 0)
-
-                    # Draw bounding box
                     cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
 
-                    # Display a label with an ID or name (just using idx as a placeholder)
+                    # -- 2b) Label above face box
                     label_text = f"Person {idx}"
                     cv2.putText(frame, label_text, (x, y - 10),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
 
-                    # Extract emotions
-                    dom_emotion = face_data.get('dominant_emotion', '')
-                    emotions = face_data.get('emotion', {})  # dict: e.g. {'angry': XX, 'happy': YY, ...}
+                    # -- 2c) Emotions
+                    dom_emotion = face_data.get('dominant_emotion', '').lower()
+                    if dom_emotion:
+                        distinct_emotions_in_frame.add(dom_emotion)
 
-                    # Prepare overlay rectangle next to the bounding box
+                    emotions = face_data.get('emotion', {})
+
+                    # -- 2d) Draw overlay box
                     overlay_x1 = x + w + 10
                     overlay_y1 = y
                     overlay_width = 210
@@ -586,7 +603,6 @@ def demo_mode(source='stream',detector_backend='retinaface'):
                     overlay_x2 = overlay_x1 + overlay_width
                     overlay_y2 = overlay_y1 + overlay_height
 
-                    # Create semi-transparent rectangle
                     overlay = frame.copy()
                     cv2.rectangle(overlay, (overlay_x1, overlay_y1),
                                   (overlay_x2, overlay_y2), (0, 0, 0), -1)
@@ -598,23 +614,19 @@ def demo_mode(source='stream',detector_backend='retinaface'):
                                 (overlay_x1 + 5, overlay_y1 + 20),
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 1)
 
-                    # Draw emotion bars
+                    # Draw bar chart for known emotions
                     bar_left = overlay_x1 + 80
                     bar_top_start = overlay_y1 + 40
                     bar_height = 12
                     gap = 15
-
-                    # Emotions often in: angry, disgust, fear, happy, sad, surprise, neutral
-                    # We'll iterate them in a fixed order for consistency:
                     emotion_order = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
+
                     for i, emo_name in enumerate(emotion_order):
                         emo_val = emotions.get(emo_name, 0.0)
-                        # Scale to a max length of 100
                         bar_length = int(min(emo_val, 100) / 100 * 100)
 
                         top_y = bar_top_start + i * (bar_height + gap)
-                        # Highlight if it matches the dominant emotion (case-insensitive)
-                        if dom_emotion.lower() == emo_name.lower():
+                        if dom_emotion == emo_name:
                             bar_color = (0, 255, 255)
                         else:
                             bar_color = (255, 255, 255)
@@ -626,14 +638,97 @@ def demo_mode(source='stream',detector_backend='retinaface'):
                                       (bar_left + bar_length, top_y + bar_height),
                                       bar_color, -1)
 
-            # Show the frame
-            cv2.imshow('Demo Mode Stream', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
+            # 3) MOTION LOGIC (if motion_enabled)
+            # If at least one face/emotion is found, update `time_last_emotion`
+            if len(distinct_emotions_in_frame) > 0:
+                time_last_emotion = current_time
 
-        # Clean up
+            if motion_enabled:
+                # Check if we are outside the motion cooldown
+                if (current_time - time_last_motion) >= motion_cooldown:
+                    # If we have at least one recognized emotion, trigger the mapped motion
+                    if distinct_emotions_in_frame:
+                        # Build a combined list of possible motions
+                        possible_motions = []
+                        for emo in distinct_emotions_in_frame:
+                            if emo in motion_map:
+                                possible_motions.extend(motion_map[emo])
+                        # If we found at least one possible motion, pick one randomly
+                        if possible_motions:
+                            chosen = random.choice(possible_motions)
+                            trigger_motion(chosen)
+                            time_last_motion = current_time
+                    else:
+                        # If NO emotion for 10 seconds => random idle motion
+                        # Check how long it's been since we last saw any emotion
+                        if (current_time - time_last_emotion) >= 10.0:
+                            chosen = random.choice(idle_motions)
+                            trigger_motion(chosen)
+                            # Reset both motion and "last emotion" timers
+                            time_last_motion = current_time
+                            time_last_emotion = current_time
+
+            # 4) SPEECH LOGIC (if speech_enabled)
+            # Every 10s, speak the distinct emotions if we see any faces
+            if speech_enabled:
+                if (current_time - time_last_speech) >= speech_cooldown:
+                    if len(distinct_emotions_in_frame) > 0:
+                        # Build a phrase from distinct emotions, e.g. "happy, sad"
+                        # Convert spaces to underscores
+                        # (DeepFace often has "fear" / "angry" etc. which are single words, but let's be safe)
+                        phrase = ", ".join(distinct_emotions_in_frame)
+                        phrase = phrase.replace(" ", "_")
+                        trigger_speech(phrase)
+                        time_last_speech = current_time
+
+            # 5) DISPLAY FRAME
+            cv2.imshow('Demo Mode Stream', frame)
+            key = cv2.waitKey(1) & 0xFF
+
+            if key == ord('q'):
+                # Quit
+                break
+            elif key == ord('m'):
+                # Toggle motion
+                motion_enabled = not motion_enabled
+                print(f"Motion enabled: {motion_enabled}")
+            elif key == ord('s'):
+                # Toggle speech
+                speech_enabled = not speech_enabled
+                print(f"Speech enabled: {speech_enabled}")
+
+        # Cleanup
         cap.release()
         cv2.destroyAllWindows()
 
     except Exception as e:
         print(f"An error occurred in demo_mode: {e}")
+
+
+def trigger_motion(sequence_number):
+    """
+    Sends an HTTP request to trigger a motion in Ikaros via:
+    http://127.0.0.1:8000/command/SR.trig/{sequence_number}/0/0
+    """
+    url = f"http://127.0.0.1:8000/command/SR.trig/{sequence_number}/0/0"
+    try:
+        requests.get(url, timeout=1.0)  # 1-second timeout just to be safe
+        print(f"Triggered motion: {sequence_number}")
+    except Exception as ex:
+        print(f"Error triggering motion ({sequence_number}): {ex}")
+
+
+def trigger_speech(text):
+    """
+    Sends an HTTP request for Epi to speak the given text:
+    http://127.0.0.1:8000/command/EpiSpeech.say/0/0/...
+    Spaces should be replaced with underscores or properly URL-encoded.
+    """
+    # Replace any spaces with underscores, if still present
+    text = text.replace(" ", "_")
+    url = f"http://127.0.0.1:8000/command/EpiSpeech.say/0/0/{text}"
+    try:
+        requests.get(url, timeout=2.0)
+        print(f"Epi says: {text}")
+    except Exception as ex:
+        print(f"Error triggering speech ({text}): {ex}")
