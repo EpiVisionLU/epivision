@@ -30,10 +30,10 @@ EpiVision focuses on developing a real-time face recognition system that process
 
 ## Team
 
-- Ruben Täpptorp (Information & Communications Engineering)
-- Alexander Vatamidis Norrstam (Cognitive Science)
-- Marcus Lindelöf (Cognitive Science)
--  Simon Högborg Rosengren (Cognitive Science)
+- Ruben T. (Information & Communications Engineering)
+- Alexander V. N. (Cognitive Science)
+- Marcus L. (Cognitive Science)
+-  Simon H. R. (Cognitive Science)
 
 # How-to
 
