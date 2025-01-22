@@ -1,8 +1,9 @@
 # EpiVision
 
-EpiVision is a student project from Lund University and LTH. 
+EpiVision is a student project from Lund University and LTH as a part of the course [KOGP10](https://www.fil.lu.se/en/course/KOGP10/)/[MAMN15](https://kurser.lth.se/kursplaner/24_25/MAMN15.html). 
 
 ## How to install
+
 1. If you don't already have python installed, install python.
 2. Copy the repository.
 3. in the folder which you copied the repo to, do 'pip install deepface'.
@@ -14,7 +15,7 @@ EpiVision is a project aimed at enhancing [Epi](https://github.com/birgerjohanss
 
 ## Project Overview
 
-EpiVision focuses on developing a real-time face recognition system that processes video feeds from Epi’s cameras by leveraging machine learning and computer vision techniques. She system aims to detects and identifiy familiar faces and facial expressions.
+EpiVision focuses on developing a real-time face recognition system that processes video feeds from Epi’s cameras by leveraging machine learning and computer vision techniques. The system aims to detects and identifiy familiar faces and facial expressions.
 
 ## Technologies Used
 
@@ -23,8 +24,9 @@ EpiVision focuses on developing a real-time face recognition system that process
 - Face Recognition Models:
   - Detection: [RetinaFace](https://github.com/serengil/retinaface) or [mtcnn](https://github.com/ipazc/mtcnn)
   - Identification: [facenet](https://github.com/davidsandberg/facenet)
-
-- Text-to-Speech:[ Ikaros EpiSpeech](https://github.com/ikaros-project/ikaros)
+  - Facial Attribute Analysis: [DeepFace](https://github.com/serengil/deepface)
+  
+- Interacting with Epi:[ Ikaros](https://github.com/ikaros-project/ikaros)
 
 ## Team
 
@@ -45,7 +47,7 @@ Change `main()` based on what you want to do.
 
 ### mov-to-db.py
 
-Either run the mov-to-db.py file from the terminal and use <path to video> <Name> as args (`python mov-to-db.py /Users/epi/Downloads/movie.mov John`), or run the program without args and add video path and name as inputs when prompted.
+Either run the mov-to-db.py file from the terminal and use \<path to video\> \<Name\> as args (`python mov-to-db.py /Users/epi/Downloads/movie.mov John`), or run the program without args and add video path and name as inputs when prompted.
 
 ## /Offline analysis
 
@@ -83,7 +85,7 @@ Usage: python video-overlay.py --video /path/to/video.mp4 --csv /path/to/video.c
 
 ### esep.json
 
-The `esep.json` file contains the associated animations to the script in `esep.csv`. You need to put `esep.json in `/users/epi/Ikaros-2/Robots/code/` (or something like that). Or you can create your own animations.  `4` in the script refers to the fifth animation in Ikaros, etc.
+The `esep.json` file contains the associated animations to the script in `esep.csv`. You need to put `esep.json in /users/epi/Ikaros-2/Robots/code` (or something like that). Or you can create your own animations.  `4` in the script refers to the fifth animation in Ikaros, etc.
 
 ### esep_program.py
 
